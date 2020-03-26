@@ -9,22 +9,21 @@ import damp_config as config
 
 N_WORKERS = 5 
 
-def parallel_mel(track, audio_dir, save_dir, ext):
-    
-    audiofile = os.path.join(audio_dir, track)
-    savefile = os.path.join(save_dir, track.replace(ext, '.npy'))
+def parallel_mel(audiofile, save_dir):
+    savefile = os.path.join(save_dir, audiofile.stem + '.npy')
     
     if not os.path.exists(os.path.dirname(savefile)):
         os.makedirs(os.path.dirname(savefile), exist_ok=True)
 
     if os.path.exists(savefile):
         print (savefile, ":already exists")
-        return 
+        return
     
     try : 
-        y, _ = librosa.load(audiofile, sr=config.sr)
+        y, _ = librosa.load(audiofile)
     except : 
-        print (savefile, ":unable to load")
+        e = sys.exc_info()[0]
+        print (audiofile, ":unable to load", e)
         return 
     S = librosa.core.stft(y, n_fft=config.n_fft, hop_length=config.hop_length)
     X = np.abs(S)
