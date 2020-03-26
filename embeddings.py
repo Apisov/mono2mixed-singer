@@ -18,14 +18,14 @@ from feature_extract import parallel_mel
 import damp_siamese.model as model 
 
 # args 
-parser = argparse.ArgumentParser()
-parser.add_argument('--domain', type=str, choices=['mono', 'mixed'], required=True)
-parser.add_argument('--model_path', type=str, required=True)
-parser.add_argument('--audio_path', type=str, required=True)
-args = parser.parse_args()
-print("model path:", args.model_path)
-print("audio path:", args.audio_path)
-print("audio file domain:", args.domain)
+# parser = argparse.ArgumentParser()
+# parser.add_argument('--domain', type=str, choices=['mono', 'mixed'], required=True)
+# parser.add_argument('--model_path', type=str, required=True)
+# parser.add_argument('--audio_path', type=str, required=True)
+# args = parser.parse_args()
+# print("model path:", args.model_path)
+# print("audio path:", args.audio_path)
+# print("audio file domain:", args.domain)
 
 N_WORKERS=5
 
@@ -48,13 +48,12 @@ def extract_embeddings(model_path, audio_path, domain):
     get_last_layer_outputs = K.function([layer_input, K.learning_phase()],[layer_output])
 
     # process audio files in the audio_path directory 
-    list_of_audiofiles = [f for f in Path(audio_path).glob('*')]
+    list_of_audiofiles = [f for f in Path(audio_path).glob("**/sing/*.wav") if not f.stem.startswith('.')][:5]
     print ("Number of audiofiles to process :", len(list_of_audiofiles))
     list_of_data = [] 
-    ext = '.' + str(list_of_audiofiles[0]).split('.')[-1]
     mel_path = Path(audio_path).stem + '_mel' 
     for audiofile in list_of_audiofiles : 
-        list_of_data.append([Path(audiofile).stem + ext, audio_path, mel_path, ext])
+        list_of_data.append([audiofile, mel_path])
     with Pool(N_WORKERS) as p : 
         p.starmap(parallel_mel, list_of_data)
     
@@ -93,7 +92,12 @@ def extract_embeddings(model_path, audio_path, domain):
         np.save(os.path.join(savedir, filename +'.npy'), track_embeddings)
     print ("Results saved in ", savedir)    
 
-if __name__ == '__main__':
-    extract_embeddings(args.model_path, args.audio_path, args.domain)
+# if __name__ == '__main__':
+#     extract_embeddings(args.model_path, args.audio_path, args.domain)
 
 
+# extract_embeddings(
+#     "/home/pc2752/share/Pavlos/mono2mixed-singer/damp_siamese/models/cross_pretrained.h5",
+#     "/home/pc2752/share/datasets/nus-smc-corpus_48/",
+#     "mono"
+# )
